@@ -28,12 +28,11 @@ type RabbitClientImpl struct {
 	nextQueue string
 }
 
-func NewRabbitClient(url string, thisQueue string, nextQueue string) RabbitClient {
+func NewRabbitClient(url string, thisQueue string) RabbitClient {
 
 	r := RabbitClientImpl{
 		URL:       url,
 		thisQueue: thisQueue,
-		nextQueue: nextQueue,
 	}
 	r.InitRabbit()
 
