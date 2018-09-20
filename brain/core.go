@@ -7,6 +7,7 @@ import (
 
 // todo - add function and nextKey from DB
 func fetchComponentConfig(config Config) Config {
+	config.NextKeys = []int{2}
 	return config
 }
 
