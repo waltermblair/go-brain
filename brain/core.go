@@ -5,18 +5,24 @@ import (
 	"strconv"
 )
 
-// todo - add function and nextKey from DB
 func fetchComponentConfig(config Config) Config {
-	config.NextKeys = []int{2}
-	return config
+	id, nextKeys, fn := fetchConfig(config.ID)
+	return Config{
+		id,
+		config.Status,
+		fn,
+		nextKeys,
+	}
 }
 
+// todo - only send input if key matches one of brain's nextKeys
+// todo - select which component gets which initial input
 func selectInput(body MessageBody, config Config) bool {
 
 	var input bool
 
 	if config.Status == "up" {
-		input = body.Input[0] // todo - how to select correct input
+		input = body.Input[0]
 	}
 
 	return input
