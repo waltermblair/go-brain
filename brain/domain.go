@@ -16,3 +16,9 @@ type Config struct {
 	Function 	string
 	NextKeys 	[]int
 }
+
+type ConfigRecord struct {
+	ID			int			`json:"this"`
+	Function 	string      `json:"function"`
+	NextKey 	int 		`json:"next"`
+}

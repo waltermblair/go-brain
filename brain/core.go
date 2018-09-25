@@ -5,8 +5,8 @@ import (
 	"strconv"
 )
 
-func fetchComponentConfig(config Config) Config {
-	id, nextKeys, fn := fetchConfig(config.ID)
+func fetchComponentConfig(config Config, db DBClient) Config {
+	id, nextKeys, fn := db.FetchConfig(config.ID)
 	return Config{
 		id,
 		config.Status,
@@ -17,6 +17,7 @@ func fetchComponentConfig(config Config) Config {
 
 // TODO - only send input if key matches one of brain's nextKeys
 // TODO - select which component gets which initial input
+// TODO - apply function
 func selectInput(body MessageBody, config Config) bool {
 
 	input := body.Input[0]
@@ -24,9 +25,9 @@ func selectInput(body MessageBody, config Config) bool {
 
 }
 
-func buildMessage(body MessageBody, config Config) MessageBody {
+func buildMessage(body MessageBody, config Config, db DBClient) MessageBody {
 
-	config = fetchComponentConfig(config)
+	config = fetchComponentConfig(config, db)
 	input := selectInput(body, config)
 
 	return MessageBody{
@@ -35,7 +36,7 @@ func buildMessage(body MessageBody, config Config) MessageBody {
 	}
 }
 
-func RunDemo(body MessageBody, rabbit RabbitClient) (output bool, err error){
+func RunDemo(body MessageBody, rabbit RabbitClient, db DBClient) (output bool, err error){
 
 	configs := body.Configs
 	fmt.Println("number of messages to send: ", len(configs))
@@ -43,7 +44,7 @@ func RunDemo(body MessageBody, rabbit RabbitClient) (output bool, err error){
 	//	build and publish each message
 	for _, config := range configs {
 
-		msg := buildMessage(body, config)
+		msg := buildMessage(body, config, db)
 
 		// determine routing key
 		nextQueue := strconv.Itoa(config.ID)
