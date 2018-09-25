@@ -6,8 +6,7 @@ import (
 
 func main() {
 
-	rabbit := NewRabbitClient("amqp://guest:guest@localhost:5672/", "0") // todo - replace with env
-	go rabbit.RunConsumer()
+	rabbit := NewRabbitClient("amqp://guest:guest@localhost:5672/", "0") // TODO - replace with env
 	RunAPI(rabbit)
 
 }

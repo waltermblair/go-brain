@@ -15,16 +15,11 @@ func fetchComponentConfig(config Config) Config {
 	}
 }
 
-// todo - only send input if key matches one of brain's nextKeys
-// todo - select which component gets which initial input
+// TODO - only send input if key matches one of brain's nextKeys
+// TODO - select which component gets which initial input
 func selectInput(body MessageBody, config Config) bool {
 
-	var input bool
-
-	if config.Status == "up" {
-		input = body.Input[0]
-	}
-
+	input := body.Input[0]
 	return input
 
 }
@@ -40,7 +35,7 @@ func buildMessage(body MessageBody, config Config) MessageBody {
 	}
 }
 
-func RunDemo(body MessageBody, rabbit RabbitClient) (err error){
+func RunDemo(body MessageBody, rabbit RabbitClient) (output bool, err error){
 
 	configs := body.Configs
 	fmt.Println("number of messages to send: ", len(configs))
@@ -59,7 +54,12 @@ func RunDemo(body MessageBody, rabbit RabbitClient) (err error){
 
 	}
 
-	return err
+	fmt.Println("waiting for output...")
+	output, err = rabbit.RunConsumer()
+	fmt.Println("received output: ", output)
+	fmt.Println("received err: ", err)
+
+	return output, err
 
 }
 

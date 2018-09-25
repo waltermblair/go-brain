@@ -19,6 +19,8 @@ func RunAPI(rabbit RabbitClient) {
 	})
 
 	r.POST("/run", func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Origin", "http://localhost:3000")
+
 		var msg Message
 
 		if err := c.ShouldBindJSON(&msg); err != nil {
@@ -28,11 +30,12 @@ func RunAPI(rabbit RabbitClient) {
 
 		body := msg.Body
 
-		c.JSON(http.StatusOK, gin.H{"config": body.Configs, "input": body.Input})
-
-		if err := RunDemo(body, rabbit); err != nil {
+		if output, err := RunDemo(body, rabbit); err != nil {
 			fmt.Println("error running app: ", err)
+		} else {
+			c.JSON(http.StatusOK, gin.H{"config": body.Configs, "input": body.Input, "output": output})
 		}
+
 	})
 
 	r.Use(cors.Default())
