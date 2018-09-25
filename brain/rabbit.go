@@ -9,7 +9,7 @@ import (
 )
 
 type RabbitClient interface {
-	RunConsumer()
+	RunConsumer() (bool, error)
 	Publish(MessageBody, string) error
 	InitRabbit()
 }
@@ -42,7 +42,9 @@ func NewRabbitClient(url string, thisQueue string) RabbitClient {
 
 }
 
-func (r *RabbitClientImpl) RunConsumer() {
+// TODO - ack/delete message?
+// Used to run callback queue for returning final output to UI
+func (r *RabbitClientImpl) RunConsumer() (res bool, err error){
 
 	cli := cony.NewClient(
 		cony.URL(r.URL),
@@ -59,19 +61,27 @@ func (r *RabbitClientImpl) RunConsumer() {
 	cns := cony.NewConsumer(r.cnsQue)
 
 	cli.Consume(cns)
+	defer cli.Close()
 
 	for cli.Loop() {
+		var res MessageBody
+
 		select {
 		case msg := <-cns.Deliveries():
 			log.Printf("Received body: %q\n", msg.Body)
+			json.Unmarshal(msg.Body, &res)
+			return res.Input[0], nil
 			msg.Ack(false)
 		case err := <-cns.Errors():
 			fmt.Printf("Consumer error: %v\n", err)
+			return false, err
 		case err := <-cli.Errors():
 			fmt.Printf("Client error: %v\n", err)
+			return false, err
 		}
 	}
 
+	return false, err
 }
 
 func (r *RabbitClientImpl) Publish(body MessageBody, nextQueue string) error {
