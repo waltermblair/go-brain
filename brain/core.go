@@ -6,6 +6,7 @@ import (
 )
 
 func fetchComponentConfig(config Config, db DBClient) Config {
+	fmt.Println("fetching component config for id: ", config.ID)
 	id, nextKeys, fn := db.FetchConfig(config.ID)
 	return Config{
 		id,

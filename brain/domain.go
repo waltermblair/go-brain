@@ -18,7 +18,7 @@ type Config struct {
 }
 
 type ConfigRecord struct {
-	ID			int			`json:"this"`
-	Function 	string      `json:"function"`
-	NextKey 	int 		`json:"next"`
+	ID			int
+	Function 	string
+	NextKey 	int
 }

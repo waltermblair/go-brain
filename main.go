@@ -12,6 +12,8 @@ func main() {
 	db, err := NewDBClient("root:root@tcp(localhost:3306)/store")
 	if err != nil {
 		log.Fatal("failed to initialize service: ", err)
+	} else {
+		log.Println("initialized service successfully")
 	}
 	RunAPI(rabbit, db)
 

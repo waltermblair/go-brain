@@ -37,15 +37,22 @@ func (c *DBClientImpl) FetchConfig(id int) (int, []int, string) {
 	var nextKeys []int
 
 	query := fmt.Sprintf(
-		"SELECT c.this, c.function, k.next FROM `configurations` c " +
-		"JOIN `next_keys` k ON c.this=k.this " +
-		"WHERE c.this=$1")
+		"SELECT c.this, c.function, k.next FROM configurations c " +
+		"JOIN next_keys k ON c.this = k.this " +
+		"WHERE c.this = %d", id)
 
-	rows, err := c.db.Query(query, id)
+	log.Println("executing query: ", query)
+
+	rows, err := c.db.Query(query)
 	defer rows.Close()
 
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	for rows.Next() {
-		if err := rows.Scan(&row); err != nil {
+
+		if err := rows.Scan(&row.ID, &row.Function, &row.NextKey); err != nil {
 			log.Fatal(err)
 		}
 		nextKeys = append(nextKeys, row.NextKey)
@@ -54,6 +61,7 @@ func (c *DBClientImpl) FetchConfig(id int) (int, []int, string) {
 		log.Fatal(err)
 	}
 
+	fmt.Println("retrieved from db config for id: ", row.ID)
 	return row.ID, nextKeys, row.Function
 
 }
