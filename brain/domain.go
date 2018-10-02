@@ -16,3 +16,9 @@ type Config struct {
 	Function 	string
 	NextKeys 	[]int
 }
+
+type ConfigRecord struct {
+	ID			int
+	Function 	string
+	NextKey 	int
+}
