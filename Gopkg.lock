@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/DATA-DOG/go-sqlmock"
+  packages = ["."]
+  revision = "d76b18b42f285b792bf985118980ce9eacea9d10"
+  version = "v1.3.0"
+
+[[projects]]
   name = "github.com/assembla/cony"
   packages = ["."]
   revision = "dd62697b0adb9adfda8589520cb85f4cbc2361f1"
@@ -208,6 +214,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2e98c371da280d4c181fe6d6e11b5fd8c4300b1f17da2ec08837113ac75b8f0d"
+  inputs-digest = "47ca21bf36dd9b2b3469a9dd0140c7bddcd08b573497e32cf04cd6ec6a23cb77"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func RunAPI(rabbit RabbitClient, db DBClient) {
+func RunAPI(s Service, rabbit RabbitClient, db DBClient) {
 
 	r := gin.Default()
 
@@ -30,7 +30,8 @@ func RunAPI(rabbit RabbitClient, db DBClient) {
 
 		body := msg.Body
 
-		if output, err := RunDemo(body, rabbit, db); err != nil {
+
+		if output, err := s.RunDemo(body, rabbit, db); err != nil {
 			fmt.Println("error running app: ", err)
 		} else {
 			c.JSON(http.StatusOK, gin.H{"config": body.Configs, "input": body.Input, "output": output})

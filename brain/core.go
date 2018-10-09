@@ -5,31 +5,58 @@ import (
 	"strconv"
 )
 
-func fetchComponentConfig(config Config, db DBClient) Config {
-	fmt.Println("fetching component config for id: ", config.ID)
-	id, nextKeys, fn := db.FetchConfig(config.ID)
+type Service interface {
+	FetchComponentConfig(Config, DBClient) Config
+	SelectInput([]bool, Config) bool
+	BuildMessage([]bool, Config, DBClient) MessageBody
+	RunDemo(MessageBody, RabbitClient, DBClient) (bool, error)
+}
+
+type ServiceImpl struct {
+	config		Config
+}
+
+func NewService(db DBClient) Service {
+	nextKeys, _ := db.FetchConfig(0)
+	cfg := Config {
+		0,
+		"",
+		"",
+		nextKeys,
+	}
+	s := ServiceImpl{
+		cfg,
+	}
+	return &s
+}
+
+func (s *ServiceImpl) FetchComponentConfig(config Config, db DBClient) Config {
+	fmt.Println("fetching component config for routing key: ", config.ID)
+	nextKeys, fn := db.FetchConfig(config.ID)
+	fmt.Println("HERE BE DB FUNCTION: " + fn)
 	return Config{
-		id,
+		config.ID,
 		config.Status,
 		fn,
 		nextKeys,
 	}
 }
 
-// TODO - only send input if key matches one of brain's nextKeys
-// TODO - select which component gets which initial input
-// TODO - apply function
-func selectInput(body MessageBody, config Config) bool {
+func (s *ServiceImpl) SelectInput(inputs []bool, config Config) (input bool) {
 
-	input := body.Input[0]
+	for i, nextKey := range s.config.NextKeys {
+		if config.ID == nextKey {
+			input = inputs[i]
+		}
+	}
 	return input
 
 }
 
-func buildMessage(body MessageBody, config Config, db DBClient) MessageBody {
+func (s *ServiceImpl) BuildMessage(inputs []bool, config Config, db DBClient) MessageBody {
 
-	config = fetchComponentConfig(config, db)
-	input := selectInput(body, config)
+	config = s.FetchComponentConfig(config, db)
+	input := s.SelectInput(inputs, config)
 
 	return MessageBody{
 		Configs: []Config{config},
@@ -37,23 +64,18 @@ func buildMessage(body MessageBody, config Config, db DBClient) MessageBody {
 	}
 }
 
-func RunDemo(body MessageBody, rabbit RabbitClient, db DBClient) (output bool, err error){
+func (s *ServiceImpl) RunDemo(body MessageBody, rabbit RabbitClient, db DBClient) (output bool, err error){
 
 	configs := body.Configs
 	fmt.Println("number of messages to send: ", len(configs))
 
 	//	build and publish each message
 	for _, config := range configs {
-
-		msg := buildMessage(body, config, db)
-
+		msg := s.BuildMessage(body.Input, config, db)
 		// determine routing key
 		nextQueue := strconv.Itoa(config.ID)
-
 		fmt.Println("sending this message: ", msg)
-
 		err = rabbit.Publish(msg, nextQueue)
-
 	}
 
 	fmt.Println("waiting for output...")
