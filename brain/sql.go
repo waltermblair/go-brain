@@ -5,7 +5,6 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
-	"strconv"
 )
 
 type DBClient interface {
@@ -56,7 +55,6 @@ func (c *DBClientImpl) FetchConfig(id int) ([]int, string) {
 		if err := rows.Scan(&row.Function, &row.NextKey); err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println("APPENDING: " + strconv.Itoa(row.NextKey))
 		nextKeys = append(nextKeys, row.NextKey)
 	}
 	if err = rows.Err(); err != nil {
@@ -64,8 +62,7 @@ func (c *DBClientImpl) FetchConfig(id int) ([]int, string) {
 	}
 
 	fmt.Println("retrieved from db config for routing key: ", id)
-	fmt.Println("YARRRR: " + row.Function)
-	fmt.Println("YARRRR: " + strconv.Itoa(len(nextKeys)))
+
 	return nextKeys, row.Function
 
 }

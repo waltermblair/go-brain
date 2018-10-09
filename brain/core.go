@@ -33,7 +33,6 @@ func NewService(db DBClient) Service {
 func (s *ServiceImpl) FetchComponentConfig(config Config, db DBClient) Config {
 	fmt.Println("fetching component config for routing key: ", config.ID)
 	nextKeys, fn := db.FetchConfig(config.ID)
-	fmt.Println("HERE BE DB FUNCTION: " + fn)
 	return Config{
 		config.ID,
 		config.Status,
