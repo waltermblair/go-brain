@@ -18,7 +18,7 @@ type Config struct {
 }
 
 type ConfigRecord struct {
-	ID			int
+	This		int
 	Function 	string
 	NextKey 	int
 }
