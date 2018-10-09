@@ -42,7 +42,6 @@ func NewRabbitClient(url string, thisQueue string) RabbitClient {
 
 }
 
-// TODO - ack/delete message?
 // Used to run callback queue for returning final output to UI
 func (r *RabbitClientImpl) RunConsumer() (res bool, err error){
 
@@ -58,7 +57,7 @@ func (r *RabbitClientImpl) RunConsumer() (res bool, err error){
 	})
 
 	// Declare and register a consumer
-	cns := cony.NewConsumer(r.cnsQue)
+	cns := cony.NewConsumer(r.cnsQue, cony.AutoAck())
 
 	cli.Consume(cns)
 	defer cli.Close()
