@@ -3,10 +3,11 @@ package brain
 import (
 	"fmt"
 	"strconv"
+	"log"
 )
 
 type Service interface {
-	FetchComponentConfig(Config, DBClient) Config
+	FetchComponentConfig(Config, DBClient) (Config, error)
 	SelectInput([]bool, Config) bool
 	BuildMessage([]bool, Config, DBClient) MessageBody
 	RunDemo(MessageBody, RabbitClient, DBClient) (bool, error)
@@ -16,8 +17,13 @@ type ServiceImpl struct {
 	config		Config
 }
 
-func NewService(db DBClient) Service {
-	nextKeys, _ := db.FetchConfig(0)
+func NewService(db DBClient) (Service, error) {
+	nextKeys, _, err := db.FetchConfig(0)
+
+	if err != nil {
+		log.Println("error creating new service")
+		return nil, err
+	}
 	cfg := Config {
 		0,
 		"",
@@ -27,18 +33,24 @@ func NewService(db DBClient) Service {
 	s := ServiceImpl{
 		cfg,
 	}
-	return &s
+	return &s, err
 }
 
-func (s *ServiceImpl) FetchComponentConfig(config Config, db DBClient) Config {
+func (s *ServiceImpl) FetchComponentConfig(config Config, db DBClient) (Config, error) {
 	fmt.Println("fetching component config for routing key: ", config.ID)
-	nextKeys, fn := db.FetchConfig(config.ID)
+	nextKeys, fn, err := db.FetchConfig(config.ID)
+
+	if err != nil {
+		log.Println("error fetching component config")
+		return Config{}, nil
+	}
+
 	return Config{
 		config.ID,
 		config.Status,
 		fn,
 		nextKeys,
-	}
+	}, nil
 }
 
 func (s *ServiceImpl) SelectInput(inputs []bool, config Config) (input bool) {
@@ -54,7 +66,7 @@ func (s *ServiceImpl) SelectInput(inputs []bool, config Config) (input bool) {
 
 func (s *ServiceImpl) BuildMessage(inputs []bool, config Config, db DBClient) MessageBody {
 
-	config = s.FetchComponentConfig(config, db)
+	config, _ = s.FetchComponentConfig(config, db)
 	input := s.SelectInput(inputs, config)
 
 	return MessageBody{
