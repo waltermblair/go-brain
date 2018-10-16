@@ -1,9 +1,8 @@
 package brain
 
 import (
-	"fmt"
-	"strconv"
 	"log"
+	"strconv"
 )
 
 type Service interface {
@@ -37,7 +36,7 @@ func NewService(db DBClient) (Service, error) {
 }
 
 func (s *ServiceImpl) FetchComponentConfig(config Config, db DBClient) (Config, error) {
-	fmt.Println("fetching component config for routing key: ", config.ID)
+	log.Println("fetching component config for routing key: ", config.ID)
 	nextKeys, fn, err := db.FetchConfig(config.ID)
 
 	if err != nil {
@@ -78,21 +77,21 @@ func (s *ServiceImpl) BuildMessage(inputs []bool, config Config, db DBClient) Me
 func (s *ServiceImpl) RunDemo(body MessageBody, rabbit RabbitClient, db DBClient) (output bool, err error){
 
 	configs := body.Configs
-	fmt.Println("number of messages to send: ", len(configs))
+	log.Println("number of messages to send: ", len(configs))
 
 	//	build and publish each message
 	for _, config := range configs {
 		msg := s.BuildMessage(body.Input, config, db)
 		// determine routing key
 		nextQueue := strconv.Itoa(config.ID)
-		fmt.Println("sending this message: ", msg)
+		log.Println("sending this message: ", msg)
 		err = rabbit.Publish(msg, nextQueue)
 	}
 
-	fmt.Println("waiting for output...")
+	log.Println("waiting for output...")
 	output, err = rabbit.RunConsumer()
-	fmt.Println("received output: ", output)
-	fmt.Println("received err: ", err)
+	log.Println("received output: ", output)
+	log.Println("received err: ", err)
 
 	return output, err
 

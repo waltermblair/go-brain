@@ -1,10 +1,10 @@
 package brain
 
 import (
-	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"log"
 )
 
 func RunAPI(s Service, rabbit RabbitClient, db DBClient) {
@@ -32,7 +32,7 @@ func RunAPI(s Service, rabbit RabbitClient, db DBClient) {
 
 
 		if output, err := s.RunDemo(body, rabbit, db); err != nil {
-			fmt.Println("error running app: ", err)
+			log.Println("error running demo: ", err)
 		} else {
 			c.JSON(http.StatusOK, gin.H{"config": body.Configs, "input": body.Input, "output": output})
 		}
