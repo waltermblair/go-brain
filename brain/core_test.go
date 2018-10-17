@@ -75,7 +75,7 @@ var _ = Describe("Core", func() {
 			mock.ExpectQuery("^SELECT (.+) FROM configurations (.+) WHERE c.this = 0$").WillReturnRows(rows0)
 			mock.ExpectQuery("^SELECT (.+) FROM configurations (.+)$").WillReturnRows(rows1)
 			mock.ExpectQuery("^SELECT (.+) FROM configurations (.+)$").WillReturnRows(rows3)
-			s = NewService(mockDB)
+			s, _ = NewService(mockDB)
 			cfg = msgRun.Body.Configs[index]
 
 		})
@@ -85,11 +85,12 @@ var _ = Describe("Core", func() {
 
 		Describe("Fetch Component Config", func() {
 			It("should fetch component 1 config", func() {
-				result := s.FetchComponentConfig(cfg, mockDB)
+				result, err := s.FetchComponentConfig(cfg, mockDB)
 				Ω(result.ID).Should(Equal(cfg.ID))
 				Ω(result.Status).Should(Equal(cfg.Status))
 				Ω(result.Function).Should(Equal(fn))
 				Ω(result.NextKeys[0]).Should(Equal(nextKeys[2]))
+				Ω(err).Should(BeNil())
 			})
 		})
 

@@ -57,7 +57,8 @@ func (c *DBClientImpl) FetchConfig(id int) ([]int, string, error) {
 	for rows.Next() {
 
 		if err := rows.Scan(&row.Function, &row.NextKey); err != nil {
-			log.Fatal(err)
+			log.Println("error unmarshalling query result row")
+			return nextKeys, row.Function, err
 		}
 		nextKeys = append(nextKeys, row.NextKey)
 	}
@@ -66,7 +67,7 @@ func (c *DBClientImpl) FetchConfig(id int) ([]int, string, error) {
 		return nextKeys, row.Function, err
 	}
 
-	fmt.Println("retrieved from db config for routing key: ", id)
+	log.Println("retrieved from db config for routing key: ", id)
 
 	return nextKeys, row.Function, err
 
