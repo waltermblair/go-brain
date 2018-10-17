@@ -15,13 +15,13 @@ func main() {
 		rabbitHost := os.Getenv("RABBIT_HOST")
 		thisQueue := os.Getenv("THIS_QUEUE")
 
-		log.Println("RABBIT HOST: ", rabbitHost)
+		log.Println("RABBIT & DB HOST: ", rabbitHost)
 		log.Println("THIS QUEUE: " , thisQueue)
 
 		rabbit := NewRabbitClient(
 			fmt.Sprintf("amqp://guest:guest@%s:5672/", rabbitHost),
 			thisQueue)
-		db, err := NewDBClient("root:root@tcp(localhost:3306)/store")
+		db, err := NewDBClient(fmt.Sprintf("root:root@tcp(%s:3306)/store", rabbitHost))
 		service, err := NewService(db)
 
 		if err != nil {
