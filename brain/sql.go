@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
-	"fmt"
+	"log"
 )
 
 type DBClient interface {
@@ -43,12 +43,12 @@ func (c *DBClientImpl) FetchConfig(id int) ([]int, string, error) {
 		"JOIN next_keys k ON c.this = k.this " +
 		"WHERE c.this = %d", id)
 
-	fmt.Println("executing query: ", query)
+	log.Println("executing query: ", query)
 
 	rows, err = c.DB.Query(query)
 
 	if err != nil {
-		fmt.Println("error fetching config from database")
+		log.Println("error fetching config from database")
 		return nextKeys, row.Function, err
 	} else {
 		defer rows.Close()
@@ -57,17 +57,17 @@ func (c *DBClientImpl) FetchConfig(id int) ([]int, string, error) {
 	for rows.Next() {
 
 		if err := rows.Scan(&row.Function, &row.NextKey); err != nil {
-			fmt.Println("error unmarshalling query result row")
+			log.Println("error unmarshalling query result row")
 			return nextKeys, row.Function, err
 		}
 		nextKeys = append(nextKeys, row.NextKey)
 	}
 	if err = rows.Err(); err != nil {
-		fmt.Println("error parsing query result rows")
+		log.Println("error parsing query result rows")
 		return nextKeys, row.Function, err
 	}
 
-	fmt.Println("retrieved from db config for routing key: ", id)
+	log.Println("retrieved from db config for routing key: ", id)
 
 	return nextKeys, row.Function, err
 
