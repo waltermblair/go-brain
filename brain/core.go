@@ -1,7 +1,7 @@
 package brain
 
 import (
-	"log"
+	"fmt"
 	"strconv"
 )
 
@@ -20,7 +20,7 @@ func NewService(db DBClient) (Service, error) {
 	nextKeys, _, err := db.FetchConfig(0)
 
 	if err != nil {
-		log.Println("error creating new service")
+		fmt.Println("error creating new service")
 		return nil, err
 	}
 	cfg := Config {
@@ -36,11 +36,11 @@ func NewService(db DBClient) (Service, error) {
 }
 
 func (s *ServiceImpl) FetchComponentConfig(config Config, db DBClient) (Config, error) {
-	log.Println("fetching component config for routing key: ", config.ID)
+	fmt.Println("fetching component config for routing key: ", config.ID)
 	nextKeys, fn, err := db.FetchConfig(config.ID)
 
 	if err != nil {
-		log.Println("error fetching component config")
+		fmt.Println("error fetching component config")
 		return Config{}, nil
 	}
 
@@ -77,21 +77,21 @@ func (s *ServiceImpl) BuildMessage(inputs []bool, config Config, db DBClient) Me
 func (s *ServiceImpl) RunDemo(body MessageBody, rabbit RabbitClient, db DBClient) (output bool, err error){
 
 	configs := body.Configs
-	log.Println("number of messages to send: ", len(configs))
+	fmt.Println("number of messages to send: ", len(configs))
 
 	//	build and publish each message
 	for _, config := range configs {
 		msg := s.BuildMessage(body.Input, config, db)
 		// determine routing key
 		nextQueue := strconv.Itoa(config.ID)
-		log.Println("sending this message: ", msg)
+		fmt.Println("sending this message: ", msg)
 		err = rabbit.Publish(msg, nextQueue)
 	}
 
-	log.Println("waiting for output...")
+	fmt.Println("waiting for output...")
 	output, err = rabbit.RunConsumer()
-	log.Println("received output: ", output)
-	log.Println("received err: ", err)
+	fmt.Println("received output: ", output)
+	fmt.Println("received err: ", err)
 
 	return output, err
 

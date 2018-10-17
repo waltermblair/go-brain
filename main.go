@@ -15,8 +15,8 @@ func main() {
 		rabbitHost := os.Getenv("RABBIT_HOST")
 		thisQueue := os.Getenv("THIS_QUEUE")
 
-		fmt.Println("RABBIT HOST: ", rabbitHost)
-		fmt.Println("THIS QUEUE: " , thisQueue)
+		log.Println("RABBIT HOST: ", rabbitHost)
+		log.Println("THIS QUEUE: " , thisQueue)
 
 		rabbit := NewRabbitClient(
 			fmt.Sprintf("amqp://guest:guest@%s:5672/", rabbitHost),

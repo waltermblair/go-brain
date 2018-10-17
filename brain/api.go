@@ -4,7 +4,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"log"
+	"fmt"
 )
 
 func RunAPI(s Service, rabbit RabbitClient, db DBClient) {
@@ -32,7 +32,7 @@ func RunAPI(s Service, rabbit RabbitClient, db DBClient) {
 
 
 		if output, err := s.RunDemo(body, rabbit, db); err != nil {
-			log.Println("error running demo: ", err)
+			fmt.Println("error running demo: ", err)
 		} else {
 			c.JSON(http.StatusOK, gin.H{"config": body.Configs, "input": body.Input, "output": output})
 		}

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/assembla/cony"
 	"github.com/streadway/amqp"
-	"log"
 )
 
 type RabbitClient interface {
@@ -67,7 +66,7 @@ func (r *RabbitClientImpl) RunConsumer() (res bool, err error){
 
 		select {
 		case msg := <-cns.Deliveries():
-			log.Printf("Received body: %q\n", msg.Body)
+			fmt.Printf("Received body: %q\n", msg.Body)
 			json.Unmarshal(msg.Body, &res)
 			return res.Input[0], nil
 			msg.Ack(false)
