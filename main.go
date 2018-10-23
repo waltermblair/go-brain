@@ -14,6 +14,7 @@ func main() {
 	for {
 		rabbitHost := os.Getenv("RABBIT_HOST")
 		thisQueue := os.Getenv("THIS_QUEUE")
+		mysqlHost := os.Getenv("MYSQL_HOST")
 
 		log.Println("RABBIT & DB HOST: ", rabbitHost)
 		log.Println("THIS QUEUE: " , thisQueue)
@@ -21,7 +22,7 @@ func main() {
 		rabbit := NewRabbitClient(
 			fmt.Sprintf("amqp://guest:guest@%s:5672/", rabbitHost),
 			thisQueue)
-		db, err := NewDBClient(fmt.Sprintf("root:root@tcp(%s:3306)/store", rabbitHost))
+		db, err := NewDBClient(fmt.Sprintf("guest:guest@tcp(%s:3306)/store", mysqlHost))
 		service, err := NewService(db)
 
 		if err != nil {
