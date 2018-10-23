@@ -16,8 +16,9 @@ func main() {
 		thisQueue := os.Getenv("THIS_QUEUE")
 		mysqlHost := os.Getenv("MYSQL_HOST")
 
-		log.Println("RABBIT & DB HOST: ", rabbitHost)
+		log.Println("RABBIT HOST: ", rabbitHost)
 		log.Println("THIS QUEUE: " , thisQueue)
+		log.Println("MYSQL HOST: ", mysqlHost)
 
 		rabbit := NewRabbitClient(
 			fmt.Sprintf("amqp://guest:guest@%s:5672/", rabbitHost),
