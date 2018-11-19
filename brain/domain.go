@@ -14,11 +14,13 @@ type Config struct {
 	ID 			int 		`json:"id"`
 	Status 		string 		`json:"status"`
 	Function 	string		`json:"function"`
+	NumInputs 	int			`json:"num-inputs"`
 	NextKeys 	[]int		`json:"next-keys"`
 }
 
 type ConfigRecord struct {
 	This		int
 	Function 	string
+	NumInputs	int
 	NextKey 	int
 }
