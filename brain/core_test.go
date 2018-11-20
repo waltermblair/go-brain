@@ -27,35 +27,36 @@ func NewMockRabbitClient(cfg Config) RabbitClient {
 func (r *MockRabbitClientImpl) RunConsumer() (bool, error) {
 	return true, nil
 }
+
 func (r *MockRabbitClientImpl) Publish (m MessageBody, s string) error {
 	output := strconv.FormatBool(m.Input[0])
 	return errors.New("next-key: " + s + " output: " + output)
 }
+
 func (r *MockRabbitClientImpl) InitRabbit() {}
 
 var _ = Describe("Core", func() {
 
-	var s 			Service
 	var msgRun		Message
-	var index 		int
+	var msgConfig	Message
 	var cfg    	    Config
 
 	BeforeSuite(func() {
 		file, _ := os.Open("../resources/json/run.json")
 		bytes, _ := ioutil.ReadAll(file)
 		json.Unmarshal(bytes, &msgRun)
-		index = 0
+		file, _ = os.Open("../resources/json/msgConfig.json")
+		bytes, _ = ioutil.ReadAll(file)
+		json.Unmarshal(bytes, &msgConfig)
 	})
 
-	// TODO - Make expectations for each test, not for all of it together
 	Describe("Core", func() {
 
-		var mockRabbit RabbitClient
-		var mockDB     DBClient
-		var db     	   *sql.DB
-		var mock       sqlmock.Sqlmock
-		var fn 		   string
-		var nextKeys   []int
+		var s			Service
+		var mockRabbit  RabbitClient
+		var mockDB      DBClient
+		var db     	    *sql.DB
+		var mock        sqlmock.Sqlmock
 
 		BeforeEach(func() {
 			mockRabbit = NewMockRabbitClient(cfg)
@@ -64,49 +65,72 @@ var _ = Describe("Core", func() {
 				"test",
 				db,
 			}
-			fn = "not"
-			nextKeys = []int{1, 2, 3}
-			rows0 := sqlmock.NewRows([]string{"function", "next"}).
-				AddRow(fn, nextKeys[0]).
-				AddRow(fn, nextKeys[1])
-			rows1 := sqlmock.NewRows([]string{"function", "next"}).
-				AddRow(fn, nextKeys[2])
-			rows3 := sqlmock.NewRows([]string{"function", "next"}).
-				AddRow(fn, nextKeys[2])
-			rows4 := sqlmock.NewRows([]string{"COUNT(*)"}).
-				AddRow(1)
-			mock.ExpectQuery("^SELECT (.+) FROM configurations").WillReturnRows(rows0)
-			mock.ExpectQuery("^SELECT COUNT").WillReturnRows(rows4)
-			mock.ExpectExec("UPDATE configurations").WillReturnResult(sqlmock.NewResult(1, 1))
-			mock.ExpectQuery("^SELECT (.+) FROM configurations").WillReturnRows(rows1)
-			mock.ExpectQuery("^SELECT (.+) FROM configurations").WillReturnRows(rows3)
+			// Expectations each time service is created
+			rows := sqlmock.NewRows([]string{"function", "next"}).
+				AddRow("buffer", 1).
+				AddRow("buffer", 2)
+			result := sqlmock.NewResult(0, 1)
+			rows2 := sqlmock.NewRows([]string{"COUNT(*)"}).AddRow(1)
+			mock.ExpectQuery("^SELECT (.+)").WillReturnRows(rows)
+			mock.ExpectExec("^UPDATE configurations").WillReturnResult(result)
+			mock.ExpectQuery("^SELECT COUNT").WillReturnRows(rows2)
 			s, _ = NewService(mockDB)
-			cfg = msgRun.Body.Configs[index]
-
 		})
 		AfterEach(func() {
 			db.Close()
 		})
 
-		// TODO - expectations should correspond to cfg/msg
-		Describe("Fetch Component Config", func() {
-			It("should fetch component 1 config", func() {
-				result, err := s.FetchComponentConfig(cfg, mockDB)
-				Ω(result.ID).Should(Equal(0))
-				Ω(result.Status).Should(Equal(""))
-				Ω(result.Function).Should(Equal(""))
-				Ω(result.NextKeys).Should(BeNil())
-				Ω(err).Should(BeNil())
-			})
+		It("should NewService", func() {
+			Ω(s.GetConfig().ID).Should(Equal(0))
+			Ω(s.GetConfig().Status).Should(Equal(""))
+			Ω(s.GetConfig().Function).Should(Equal(""))
+			Ω(s.GetConfig().NumInputs).Should(Equal(1))
+			Ω(s.GetConfig().NextKeys).Should(Equal([]int{1,2}))
+			Ω(mock.ExpectationsWereMet()).To(BeNil())
 		})
 
-		// TODO - test build message and run demo
+		It("should FetchComponentConfig", func() {
+			rows3 := sqlmock.NewRows([]string{"function", "next"}).
+				AddRow("not", 2).
+				AddRow("not", 3)
+			result := sqlmock.NewResult(1, 1)
+			rows4 := sqlmock.NewRows([]string{"COUNT(*)"}).AddRow(1)
+			mock.ExpectQuery("^SELECT (.+)").WillReturnRows(rows3)
+			mock.ExpectExec("^UPDATE configurations").WillReturnResult(result)
+			mock.ExpectQuery("^SELECT COUNT").WillReturnRows(rows4)
+			cfg, err := s.FetchComponentConfig(msgConfig.Body.Configs[0], mockDB)
+			Ω(cfg.ID).Should(Equal(1))
+			Ω(err).Should(BeNil())
+			Ω(mock.ExpectationsWereMet()).To(BeNil())
+		})
 
-		//It("should run demo", func() {
-		//	output, err := s.RunDemo(msgRun.Body, mockRabbit, mockDB)
-		//	Ω(output).Should(BeTrue())
-		//	Ω(err).Should(BeNil())
-		//	Ω(mock.ExpectationsWereMet()).To(BeNil())
-		//})
+		It("should BuildInputMessage", func() {
+			msg := s.BuildInputMessage(true)
+			Ω(msg.Input[0]).Should(BeTrue())
+		})
+
+		It("should BuildConfigMessage", func() {
+			rows5 := sqlmock.NewRows([]string{"function", "next"}).
+				AddRow("not", 2).
+				AddRow("not", 3)
+			result := sqlmock.NewResult(1, 1)
+			rows6 := sqlmock.NewRows([]string{"COUNT(*)"}).AddRow(1)
+			mock.ExpectQuery("^SELECT (.+)").WillReturnRows(rows5)
+			mock.ExpectExec("^UPDATE configurations").WillReturnResult(result)
+			mock.ExpectQuery("^SELECT COUNT").WillReturnRows(rows6)
+			msg := s.BuildConfigMessage(msgConfig.Body.Configs[0], mockDB)
+			Ω(msg.Input).Should(BeNil())
+			Ω(msg.Configs[0].ID).Should(Equal(1))
+			Ω(msg.Configs[0].Status).Should(Equal("up"))
+			Ω(msg.Configs[0].Function).Should(Equal("not"))
+			Ω(msg.Configs[0].NumInputs).Should(Equal(1))
+			Ω(msg.Configs[0].NextKeys).Should(Equal([]int{2, 3}))
+			Ω(mock.ExpectationsWereMet()).To(BeNil())
+		})
+
+		// TODO test runDemo
+		It("should RunDemo", func() {
+
+		})
 	})
 })

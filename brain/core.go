@@ -6,6 +6,7 @@ import (
 )
 
 type Service interface {
+	GetConfig() Config
 	FetchComponentConfig(Config, DBClient) (Config, error)
 	BuildInputMessage(bool) MessageBody
 	BuildConfigMessage(Config, DBClient) MessageBody
@@ -28,7 +29,7 @@ func NewService(db DBClient) (Service, error) {
 	numInputs, nextKeys, _, err := db.FetchConfig(cfg)
 
 	if err != nil {
-		log.Println("error creating new service")
+		log.Println("error creating new service: ", err.Error())
 		return nil, err
 	}
 
@@ -39,6 +40,10 @@ func NewService(db DBClient) (Service, error) {
 		cfg,
 	}
 	return &s, err
+}
+
+func (s *ServiceImpl) GetConfig() Config {
+	return s.config
 }
 
 func (s *ServiceImpl) FetchComponentConfig(config Config, db DBClient) (Config, error) {
@@ -59,7 +64,6 @@ func (s *ServiceImpl) FetchComponentConfig(config Config, db DBClient) (Config, 
 	}, nil
 }
 
-// TODO - consolidate build message functions
 func (s *ServiceImpl) BuildInputMessage(input bool) MessageBody {
 
 	return MessageBody{
