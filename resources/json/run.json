@@ -2,14 +2,7 @@
   "header": 0,
   "body": {
     "configuration": [
-      {
-        "id": 1,
-        "status": "up"
-      },
-      {
-        "id": 2,
-        "status": "down"
-      }
+
     ],
     "input": [true, false]
   }
