@@ -4,6 +4,8 @@
     "configuration": [
 
     ],
-    "input": [true, false]
+    "input": [true]
   }
 }
+
+
